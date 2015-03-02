@@ -31,6 +31,7 @@ var uri = totp.create('key', 'label'); // Create TOTP! (May return the URL with 
 
 var qrcode = totp.qrcode(uri, function(data) { // Create OTPAuth URL QRCode
   console.log(data.uri); // data.uri is return a URL that has been encoded QRCode in Base64. (Content-Type: image/png)
+  // data.raw is raw png data
 });
 
 var verify = totp.verify('key', 'token'); // Token (OTP Number) Valid check (If valid : return to 'true', invalid : return to false)

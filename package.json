@@ -1,6 +1,6 @@
 {
   "name": "quickotp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simplified, Quickly OTP Generate, Verify",
   "main": "index.js",
   "repository": {
@@ -18,8 +18,14 @@
     "url": "https://github.com/donginl/quickotp/issues"
   },
   "engines": {
-		"node": ">=0.9"
-	},
+    "node": ">=0.9"
+  },
   "homepage": "https://github.com/donginl/quickotp",
-  "keywords": ["otp", "qr", "otpauth", "googleauth", "twofactor"]
+  "keywords": [
+    "otp",
+    "qr",
+    "otpauth",
+    "googleauth",
+    "twofactor"
+  ]
 }

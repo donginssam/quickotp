@@ -31,6 +31,7 @@ var uri = totp.create('key', 'label'); // TOTP 형 소프트웨어 OTP 를 생�
 
 var qrcode = totp.qrcode(uri, function(data) { // OTPAuth URL 의 QRCode 를 생성한다.
   console.log(data.uri); // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
+  // data.raw 는 PNG 이미지 원본 데이터
 });
 
 var verify = totp.verify('key', 'token'); // 토큰 (OTP 번호)를 검증합니다. (만약 정상이라면 true 를 반환, 아니라면 false 를 반환합니다)
