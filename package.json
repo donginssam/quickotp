@@ -1,6 +1,6 @@
 {
   "name": "quickotp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Simplified, Quickly OTP Generate, Verify",
   "main": "index.js",
   "repository": {

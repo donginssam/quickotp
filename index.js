@@ -32,7 +32,7 @@ totp.qrcode = function(uri, callback) {
   var encoder = new QREncoder;
   encoder.on("end", function(data) {
     callback({
-      uri: 'data:image/png;base64,' + data.toString("base64") // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
+      uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
       raw: data // RAW PNG!
     });
   });
