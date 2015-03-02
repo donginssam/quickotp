@@ -1,0 +1,21 @@
+{
+  "name": "quickotp",
+  "version": "1.0.0",
+  "description": "Simplified, Quickly OTP Generate, Verify",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/donginl/quickotp.git"
+  },
+  "author": "donginl",
+  "license": "MIT",
+  "dependencies": {
+    "notp": "^2.0.3",
+    "qr": "^0.2.4",
+    "thirty-two": "^0.0.2"
+  },
+  "bugs": {
+    "url": "https://github.com/donginl/quickotp/issues"
+  },
+  "homepage": "https://github.com/donginl/quickotp"
+}
