@@ -24,17 +24,29 @@ $ npm install quickotp
 ## Usage
 
 ```js
-// Still I only support TOTP. soon I will support HOTP
+// If you want to use the TOTP...
 var totp = require('quickotp').TOTP;
+// If you want to use the HOTP...
+var hotp = require('quickotp').HOTP;
 
 var uri = totp.create('key', 'label'); // Create TOTP! (May return the URL with "otpauth" schema)
+var uri = hotp.create('key', 'label'); // or Create HOTP! (May return the URL with "otpauth" schema)
 
-var qrcode = totp.qrcode(uri, function(data) { // Create OTPAuth URL QRCode
+// Create OTPAuth URL QRCode (have two ways, but both are the same way.)
+// First Way (using TOTP...)
+var qrcode = totp.qrcode(uri, function(data) {
   console.log(data.uri); // data.uri is return a URL that has been encoded QRCode in Base64. (Content-Type: image/png)
   // data.raw is raw png data
 });
 
-var verify = totp.verify('key', 'token'); // Token (OTP Number) Valid check (If valid : return to 'true', invalid : return to false)
+// Second Way (using HOTP...)
+var qrcode = hotp.qrcode(uri, function(data) {
+  console.log(data.uri); // data.uri is return a URL that has been encoded QRCode in Base64. (Content-Type: image/png)
+  // data.raw is raw png data
+});
+
+var verify = totp.verify('key', 'token'); // TOTP Token (OTP Number) Valid check (If valid : return to 'true', invalid : return to false)
+var verify = hotp.verify('key', 'token', 'counter') // HOTP Token (OTP Number) Valid check (If valid : return to 'true', invalid : return to false)
 ```
 
 ### Author: [DONG IN LEE](https://github.com/donginl)

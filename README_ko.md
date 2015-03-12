@@ -24,17 +24,29 @@ $ npm install quickotp
 ## 사용방법
 
 ```js
-// 아직까지는 TOTP 만 지원하지만 곧 HOTP 도 지원할 예정입니다!
+// TOTP 를 사용하려면...
 var totp = require('quickotp').TOTP;
+// HOTP 를 사용하려면...
+var hotp = require('quickotp').HOTP;
 
 var uri = totp.create('key', 'label'); // TOTP 형 소프트웨어 OTP 를 생성합니다! ("otpauth" 스키마를 지닌 URL 이 반환됩니다)
+var uri = hotp.create('key', 'label'); // 또는 HOTP 형 소프트웨어 OTP 를 생성합니다! ("otpauth" 스키마를 지닌 URL 이 반환됩니다)
 
-var qrcode = totp.qrcode(uri, function(data) { // OTPAuth URL 의 QRCode 를 생성한다.
+// OTPAuth URL 의 QRCode 를 생성한다. (두 가지의 방법이 있으나, 둘 다 동일한 방법이다.)
+// 첫번째 방법 (TOTP 사용시...)
+var qrcode = totp.qrcode(uri, function(data) {
   console.log(data.uri); // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
   // data.raw 는 PNG 이미지 원본 데이터
 });
 
-var verify = totp.verify('key', 'token'); // 토큰 (OTP 번호)를 검증합니다. (만약 정상이라면 true 를 반환, 아니라면 false 를 반환합니다)
+// 두번째 방법 (HOTP 사용시...)
+var qrcode = hotp.qrcode(uri, function(data) {
+  console.log(data.uri); // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
+  // data.raw 는 PNG 이미지 원본 데이터
+});
+
+var verify = totp.verify('key', 'token'); // TOTP 토큰 (OTP 번호)를 검증합니다. (만약 정상이라면 true 를 반환, 아니라면 false 를 반환합니다)
+var verify = hotp.verify('key', 'token', 'counter'); // HOTP 토큰 (OTP 번호)를 검증합니다. (만약 정상이라면 true 를 반환, 아니라면 false 를 반환합니다)
 ```
 
 ### 작성자: [이동인](https://github.com/donginl)
