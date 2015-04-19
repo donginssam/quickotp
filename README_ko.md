@@ -4,12 +4,13 @@
 [![NPM](https://img.shields.io/npm/v/quickotp.svg)](https://npmjs.org/package/quickotp)
 [![NPM Downloads](https://img.shields.io/npm/dm/quickotp.svg)](https://npmjs.org/package/quickotp)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)]()
+[![Donate](https://img.shields.io/gratipay/donginl.svg)]()
 
 간결하고, 빠르게 소프트웨어 OTP 를 생성하고 인증하는 것을 Node.js 에서!
 이 모듈에서 생성된 OTP는 Google Authenticator 와 비슷한 애플리케이션을 지원합니다.
 
 ## 지원하는 플랫폼
-`quickotp`는 Node.js v0.9.x 이후 부터 최신버전 까지 지원합니다
+`quickotp`는 Node.js v0.10.x 이후 부터 최신버전 까지 지원합니다
 
 ## 공지사항
 이 모듈은 `qr` 모듈을 참조합니다.<br>
