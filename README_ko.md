@@ -3,8 +3,8 @@
 [![Build Status](https://travis-ci.org/donginl/quickotp.svg?branch=master)](https://travis-ci.org/donginl/quickotp)
 [![NPM](https://img.shields.io/npm/v/quickotp.svg)](https://npmjs.org/package/quickotp)
 [![NPM Downloads](https://img.shields.io/npm/dm/quickotp.svg)](https://npmjs.org/package/quickotp)
-[![License](https://img.shields.io/badge/license-MIT-yellow.svg)]()
-[![Donate](https://img.shields.io/gratipay/donginl.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](https://github.com/donginl/quickotp/blob/master/LICENSE)
+[![Donate](https://img.shields.io/gratipay/donginl.svg)](https://gratipay.com/donginl)
 
 간결하고, 빠르게 소프트웨어 OTP 를 생성하고 인증하는 것을 Node.js 에서!
 이 모듈에서 생성된 OTP는 Google Authenticator 와 비슷한 애플리케이션을 지원합니다.
