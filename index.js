@@ -1,12 +1,12 @@
 'use strict';
-
 // Already trying to use a good module!
-var notp = require('notp');
-var base32 = require('thirty-two');
-var QREncoder = require("qr").Encoder;
+const base32 = require('thirty-two'),
+      notp = require('notp'),
+      QREncoder = require("qr").Encoder,
+      util = require('util');
 
-var totp = {};
-var hotp = {};
+const totp = {},
+      hotp = {};
 
 /**
  * Generate Time One Time Password URI (otpauth://)
@@ -18,7 +18,8 @@ var hotp = {};
  */
 
 totp.create = function(key, label) {
- return 'otpauth://totp/' + label +'?secret=' + base32.encode(key).toString().replace(/=/g,'');
+  if (!key) return null;
+  return util.format('otpauth://totp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
 }
 
 /**
@@ -31,7 +32,8 @@ totp.create = function(key, label) {
  */
 
 hotp.create = function(key, label) {
- return 'otpauth://hotp/' + label +'?secret=' + base32.encode(key).toString().replace(/=/g,'');
+  if (!key) return null;
+  return util.format('otpauth://hotp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
 }
 
 /**
@@ -43,18 +45,24 @@ hotp.create = function(key, label) {
  */
 
 totp.qrcode = function(uri, callback) {
-  var encoder = new QREncoder;
+  const encoder = new QREncoder;
+
   encoder.on("end", function(data) {
-    callback({
+    callback(null, {
       uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
       raw: data // RAW PNG!
-    });
+    })
   });
-  encoder.encode(uri);
+
+  encoder.on('error', function(err) {
+    callback(err)
+  });
+
+  encoder.encode(uri)
 }
 
 hotp.qrcode = function(uri, callback) {
-  totp.qrcode(uri, callback);
+  totp.qrcode(uri, callback)
 }
 
 /**
@@ -69,8 +77,7 @@ hotp.qrcode = function(uri, callback) {
 totp.verify = function(key, token) {
   if (notp.totp.verify(token, key)) {
     return true;
-  }
-  else {
+  } else {
     return false;
   }
 }
@@ -88,8 +95,7 @@ totp.verify = function(key, token) {
 hotp.verify = function(key, token, counter) {
   if (notp.hotp.verify(token, key, {counter: counter})) {
     return true;
-  }
-  else {
+  } else {
     return false;
   }
 }

@@ -35,13 +35,15 @@ var uri = hotp.create('key', 'label'); // or Create HOTP! (May return the URL wi
 
 // Create OTPAuth URL QRCode (have two ways, but both are the same way.)
 // First Way (using TOTP...)
-var qrcode = totp.qrcode(uri, function(data) {
+var qrcode = totp.qrcode(uri, function(err, data) {
+  if (err) console.error(err);
   console.log(data.uri); // data.uri is return a URL that has been encoded QRCode in Base64. (Content-Type: image/png)
   // data.raw is raw png data
 });
 
 // Second Way (using HOTP...)
-var qrcode = hotp.qrcode(uri, function(data) {
+var qrcode = hotp.qrcode(uri, function(err, data) {
+  if (err) console.error(err);
   console.log(data.uri); // data.uri is return a URL that has been encoded QRCode in Base64. (Content-Type: image/png)
   // data.raw is raw png data
 });
@@ -50,4 +52,4 @@ var verify = totp.verify('key', 'token'); // TOTP Token (OTP Number) Valid check
 var verify = hotp.verify('key', 'token', 'counter') // HOTP Token (OTP Number) Valid check (If valid : return to 'true', invalid : return to false)
 ```
 
-### Author: [DONG IN LEE](https://github.com/donginl)
+### Author: [DONGIN LEE](https://github.com/donginl)
