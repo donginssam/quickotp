@@ -17,10 +17,10 @@ const totp = {},
  *
  */
 
-totp.create = function(key, label) {
-  if (!key) return null;
-  return util.format('otpauth://totp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
-}
+totp.create = (key, label) => {
+    if (!key) return null;
+    return util.format('otpauth://totp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
+};
 
 /**
  * Generate HMAC (based Counter) One Time Password URI (otpauth://)
@@ -31,10 +31,10 @@ totp.create = function(key, label) {
  *
  */
 
-hotp.create = function(key, label) {
-  if (!key) return null;
-  return util.format('otpauth://hotp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
-}
+hotp.create = (key, label) => {
+    if (!key) return null;
+    return util.format('otpauth://hotp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
+};
 
 /**
  * Generate OTP QR Code
@@ -44,26 +44,26 @@ hotp.create = function(key, label) {
  *
  */
 
-totp.qrcode = function(uri, callback) {
-  const encoder = new QREncoder;
+totp.qrcode = (uri, callback) => {
+    const encoder = new QREncoder;
 
-  encoder.on("end", function(data) {
-    callback(null, {
-      uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
-      raw: data // RAW PNG!
-    })
-  });
+    encoder.on("end", function(data) {
+      callback(null, {
+        uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
+        raw: data // RAW PNG!
+      })
+    });
 
-  encoder.on('error', function(err) {
-    callback(err)
-  });
+    encoder.on('error', function(err) {
+      callback(err)
+    });
 
-  encoder.encode(uri)
-}
+    encoder.encode(uri)
+};
 
-hotp.qrcode = function(uri, callback) {
-  totp.qrcode(uri, callback)
-}
+hotp.qrcode = (uri, callback) => {
+    totp.qrcode(uri, callback)
+};
 
 /**
  * Verify Time OTP
@@ -74,13 +74,9 @@ hotp.qrcode = function(uri, callback) {
  *
  */
 
-totp.verify = function(key, token) {
-  if (notp.totp.verify(token, key)) {
-    return true;
-  } else {
-    return false;
-  }
-}
+totp.verify = (key, token) => {
+    return !!notp.totp.verify(token, key);
+};
 
 /**
  * Verify HMAC OTP
@@ -92,13 +88,9 @@ totp.verify = function(key, token) {
  *
  */
 
-hotp.verify = function(key, token, counter) {
-  if (notp.hotp.verify(token, key, {counter: counter})) {
-    return true;
-  } else {
-    return false;
-  }
-}
+hotp.verify = (key, token, counter) => {
+    return !!notp.hotp.verify(token, key, {counter: counter});
+};
 
 module.exports.TOTP = totp;
 module.exports.HOTP = hotp;
