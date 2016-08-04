@@ -10,12 +10,15 @@
 이 모듈에서 생성된 OTP는 Google Authenticator 와 비슷한 애플리케이션을 지원합니다.
 
 ## 지원하는 플랫폼
-`quickotp`는 Node.js v0.10.x 이후 부터 최신버전 까지 지원합니다
+`quickotp`는 Node.js v4.x 이후 부터 최신버전 까지 지원합니다
 
 ## 공지사항
 이 모듈은 `qr` 모듈을 참조합니다.<br>
 `qr` 모듈은 시스템별로 추가 설치가 필요할 수 있습니다.<br>
 따라서 [이 링크](https://www.npmjs.com/package/qr) 를 꼭 확인하시기 바랍니다.
+
+이 모듈은 `Promise` 를 사용합니다<br>
+만약 이전의 콜백 함수를 사용하고 싶다면, `1.0.6` 등 이전버전을 설치하세요
 
 ## 설치
 ```
@@ -35,18 +38,24 @@ let uri = hotp.create('key', 'label'); // 또는 HOTP 형 소프트웨어 OTP �
 
 // OTPAuth URL 의 QRCode 를 생성한다. (두 가지의 방법이 있으나, 둘 다 동일한 방법이다.)
 // 첫번째 방법 (TOTP 사용시...)
-let qrcode = totp.qrcode(uri, (err, data) => {
-  if (err) console.error(err);
-  console.log(data.uri); // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
-  // data.raw 는 PNG 이미지 원본 데이터
-});
+let qrcode = totp.qrcode(uri).then(
+    (data) => { 
+        // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
+        // data.raw 는 PNG 이미지 원본 데이터
+        console.log(data.uri); 
+    },
+    (err) => { console.error(err); }
+);
 
 // 두번째 방법 (HOTP 사용시...)
-let qrcode = hotp.qrcode(uri, (err, data) => {
-  if (err) console.error(err);
-  console.log(data.uri); // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
-  // data.raw 는 PNG 이미지 원본 데이터
-});
+let qrcode = hotp.qrcode(uri).then(
+    (data) => { 
+        // data.uri 은 QRCode 를 Base64 로 인코딩되어 반환된 것입니다. (Content-Type: image/png)
+        // data.raw 는 PNG 이미지 원본 데이터
+        console.log(data.uri); 
+    },
+    (err) => { console.error(err); }
+);
 
 var verify = totp.verify('key', 'token'); // TOTP 토큰 (OTP 번호)를 검증합니다. (만약 정상이라면 true 를 반환, 아니라면 false 를 반환합니다)
 var verify = hotp.verify('key', 'token', 'counter'); // HOTP 토큰 (OTP 번호)를 검증합니다. (만약 정상이라면 true 를 반환, 아니라면 false 를 반환합니다)

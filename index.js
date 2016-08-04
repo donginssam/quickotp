@@ -5,92 +5,105 @@ const base32 = require('thirty-two'),
       QREncoder = require("qr").Encoder,
       util = require('util');
 
-const totp = {},
-      hotp = {};
+class totp {
+    /**
+     * Generate Time One Time Password URI (otpauth://)
+     *
+     * @param key (OTP Key)
+     * @param label (OTP Label)
+     * @return OTP Auth URL
+     *
+     */
+    create(key, label) {
+        if (!key) return null;
+        return util.format('otpauth://totp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
+    }
 
-/**
- * Generate Time One Time Password URI (otpauth://)
- *
- * @param key (OTP Key)
- * @param label (OTP Label)
- * @return OTP Auth URL
- *
- */
+    /**
+     * Generate OTP QR Code
+     *
+     * @param uri (OTP Auth URL)
+     *
+     */
+    qrcode(uri) {
+        return new Promise((resolve, reject) => {
+            const encoder = new QREncoder;
 
-totp.create = (key, label) => {
-    if (!key) return null;
-    return util.format('otpauth://totp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
-};
+            encoder.on("end", (data) => {
+                resolve({
+                    uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
+                    raw: data // RAW PNG!
+                })
+            });
 
-/**
- * Generate HMAC (based Counter) One Time Password URI (otpauth://)
- *
- * @param key (OTP Key)
- * @param label (OTP Label)
- * @return OTP Auth URL
- *
- */
+            encoder.on('error', (err) => {
+                reject(err)
+            });
 
-hotp.create = (key, label) => {
-    if (!key) return null;
-    return util.format('otpauth://hotp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
-};
+            encoder.encode(uri)
+        });
+    }
 
-/**
- * Generate OTP QR Code
- *
- * @param uri (OTP Auth URL)
- * @param callback
- *
- */
+    /**
+     * Verify Time OTP
+     *
+     * @param key (OTP Key)
+     * @param token (OTP Token, as same as OTP Number)
+     * @return Verify Result
+     *
+     */
+    verify(key, token) {
+        return !!notp.totp.verify(token, key);
+    }
+}
 
-totp.qrcode = (uri, callback) => {
-    const encoder = new QREncoder;
+class hotp {
+    /**
+     * Generate HMAC (based Counter) One Time Password URI (otpauth://)
+     *
+     * @param key (OTP Key)
+     * @param label (OTP Label)
+     * @return OTP Auth URL
+     *
+     */
+    create(key, label) {
+        if (!key) return null;
+        return util.format('otpauth://hotp/%s?secret=%s', label, base32.encode(key).toString().replace(/=/g,''));
+    }
 
-    encoder.on("end", function(data) {
-      callback(null, {
-        uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
-        raw: data // RAW PNG!
-      })
-    });
+    qrcode(uri) {
+        return new Promise((resolve, reject) => {
+            const encoder = new QREncoder;
 
-    encoder.on('error', function(err) {
-      callback(err)
-    });
+            encoder.on("end", (data) => {
+                resolve({
+                    uri: 'data:image/png;base64,' + data.toString("base64"), // URL Encoded by Base64 (If you enter into this web browser address bar, can be seen in the image)
+                    raw: data // RAW PNG!
+                })
+            });
 
-    encoder.encode(uri)
-};
+            encoder.on('error', (err) => {
+                reject(err)
+            });
 
-hotp.qrcode = (uri, callback) => {
-    totp.qrcode(uri, callback)
-};
+            encoder.encode(uri)
+        });
+    }
 
-/**
- * Verify Time OTP
- *
- * @param key (OTP Key)
- * @param token (OTP Token, as same as OTP Number)
- * @return Verify Result
- *
- */
+    /**
+     * Verify HMAC OTP
+     *
+     * @param key (OTP Key)
+     * @param token (OTP Token, as same as OTP Number)
+     * @param counter (OTP Counter)
+     * @return Verify Result
+     *
+     */
 
-totp.verify = (key, token) => {
-    return !!notp.totp.verify(token, key);
-};
+    verify(key, token, counter) {
+        return !!notp.hotp.verify(token, key, {counter: counter});
+    }
+}
 
-/**
- * Verify HMAC OTP
- *
- * @param key (OTP Key)
- * @param token (OTP Token, as same as OTP Number)
- * @param counter (OTP Counter)
- * @return Verify Result
- *
- */
-
-hotp.verify = (key, token, counter) => {
-    return !!notp.hotp.verify(token, key, {counter: counter});
-};
-
-module.exports.TOTP = totp;
-module.exports.HOTP = hotp;
+module.exports.TOTP = new totp();
+module.exports.HOTP = new hotp();
