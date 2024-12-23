@@ -1,31 +1,41 @@
 {
   "name": "quickotp",
-  "version": "1.0.7",
+  "version": "1.1.1",
   "description": "Simplified, Quickly OTP Generate, Verify",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/donginl/quickotp.git"
+    "url": "git://github.com/kimleedi/quickotp.git"
   },
-  "author": "donginl",
+  "author": "kimleedi",
   "license": "MIT",
-  "dependencies": {
-    "notp": "^2.0.3",
-    "qr": "^0.2.4",
-    "thirty-two": "^1.0.1"
-  },
   "bugs": {
-    "url": "https://github.com/donginl/quickotp/issues"
+    "url": "https://github.com/kimleedi/quickotp/issues"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=12"
   },
-  "homepage": "https://github.com/donginl/quickotp",
+  "homepage": "https://github.com/kimleedi/quickotp",
   "keywords": [
     "otp",
     "qr",
     "otpauth",
     "googleauth",
     "twofactor"
-  ]
+  ],
+  "dependencies": {
+    "notp": "^2.0.3",
+    "qrcode": "^1.5.4",
+    "thirty-two": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^4.9.5",
+    "@types/notp": "^2.0.5",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.7.2"
+  }
 }

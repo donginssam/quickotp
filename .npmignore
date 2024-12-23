@@ -1,4 +1,6 @@
 .git*
+.editorconfig
 .npmignore
-.travis.yml
-.idea
+src/**
+tsconfig.json
+yarn.lock
