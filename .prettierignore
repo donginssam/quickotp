@@ -1,0 +1,7 @@
+.claude
+.github
+dist/
+node_modules/
+.prettierrc
+*.md
+pnpm-lock.yaml

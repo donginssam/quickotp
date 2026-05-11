@@ -1,6 +1,0 @@
-.git*
-.editorconfig
-.npmignore
-src/**
-tsconfig.json
-yarn.lock
