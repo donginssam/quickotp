@@ -32,6 +32,11 @@ describe("HOTP — RFC 4226 Appendix D vectors", () => {
 describe("TOTP — RFC 6238 derived via Date.now mock", () => {
   const RFC_KEY = "12345678901234567890"
   let originalDateNow: typeof Date.now
+  const invalidWindows: Array<[number, typeof TypeError | typeof RangeError]> = [
+    [Number.NaN, TypeError],
+    [-1, RangeError],
+    [1.5, RangeError],
+  ]
 
   before(() => {
     originalDateNow = Date.now
@@ -64,14 +69,11 @@ describe("TOTP — RFC 6238 derived via Date.now mock", () => {
     assert.equal(TOTP.verify(RFC_KEY, "000000"), false)
   })
 
-  it("throws TypeError for NaN window", () => {
-    assert.throws(() => TOTP.verify(RFC_KEY, "287082", Number.NaN), TypeError)
-  })
-
-  it("throws RangeError for negative or fractional window", () => {
-    assert.throws(() => TOTP.verify(RFC_KEY, "287082", -1), RangeError)
-    assert.throws(() => TOTP.verify(RFC_KEY, "287082", 1.5), RangeError)
-  })
+  for (const [window, error] of invalidWindows) {
+    it(`throws ${error.name} for invalid window=${window}`, () => {
+      assert.throws(() => TOTP.verify(RFC_KEY, "287082", window), error)
+    })
+  }
 })
 
 // Base32 encoding — RFC 4648 §10 test vectors (no padding)
@@ -97,41 +99,41 @@ describe("Base32 — RFC 4648 vectors", () => {
 
 // URI construction
 describe("URI construction", () => {
-  it("TOTP URI has correct scheme and parameters", () => {
-    const uri = TOTP.create("secret", "My App")
-    assert.equal(uri, "otpauth://totp/My%20App?secret=ONSWG4TFOQ")
-    assert.ok(uri.startsWith("otpauth://totp/"))
-    assert.ok(uri.includes("secret=ONSWG4TFOQ")) // base32("secret")
-    assert.ok(uri.includes("My%20App")) // URL-encoded label
-  })
+  const cases = [
+    { api: TOTP, scheme: "totp" },
+    { api: HOTP, scheme: "hotp" },
+  ]
 
-  it("HOTP URI has correct scheme and parameters", () => {
-    const uri = HOTP.create("secret", "My App")
-    assert.equal(uri, "otpauth://hotp/My%20App?secret=ONSWG4TFOQ")
-    assert.ok(uri.startsWith("otpauth://hotp/"))
-    assert.ok(uri.includes("secret=ONSWG4TFOQ"))
-    assert.ok(uri.includes("My%20App"))
-  })
+  for (const { api, scheme } of cases) {
+    it(`${scheme.toUpperCase()} URI has correct scheme and parameters`, () => {
+      const uri = api.create("secret", "My App")
+      assert.equal(uri, `otpauth://${scheme}/My%20App?secret=ONSWG4TFOQ`)
+      assert.ok(uri.startsWith(`otpauth://${scheme}/`))
+      assert.ok(uri.includes("secret=ONSWG4TFOQ")) // base32("secret")
+      assert.ok(uri.includes("My%20App")) // URL-encoded label
+    })
+  }
 
   it("throws TypeError for empty key", () => {
-    assert.throws(() => TOTP.create("", "label"), TypeError)
-    assert.throws(() => HOTP.create("", "label"), TypeError)
+    for (const { api } of cases) {
+      assert.throws(() => api.create("", "label"), TypeError)
+    }
   })
 })
 
 describe("HOTP counter validation", () => {
-  it("throws TypeError for NaN counter", () => {
-    assert.throws(() => HOTP.verify("secret", "123456", Number.NaN), TypeError)
-  })
+  const invalidCounters: Array<[number, typeof TypeError | typeof RangeError]> = [
+    [Number.NaN, TypeError],
+    [-1, RangeError],
+    [1.5, RangeError],
+    [Number.MAX_SAFE_INTEGER + 1, RangeError],
+  ]
 
-  it("throws RangeError for negative, fractional, or unsafe counter", () => {
-    assert.throws(() => HOTP.verify("secret", "123456", -1), RangeError)
-    assert.throws(() => HOTP.verify("secret", "123456", 1.5), RangeError)
-    assert.throws(
-      () => HOTP.verify("secret", "123456", Number.MAX_SAFE_INTEGER + 1),
-      RangeError,
-    )
-  })
+  for (const [counter, error] of invalidCounters) {
+    it(`throws ${error.name} for invalid counter=${counter}`, () => {
+      assert.throws(() => HOTP.verify("secret", "123456", counter), error)
+    })
+  }
 })
 
 // qrcode peer dep — works when installed
