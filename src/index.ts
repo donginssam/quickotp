@@ -73,7 +73,9 @@ type HotpAPI = OtpAPI & {
 
 /** Encodes a UTF-8 string to Base32 (RFC 4648) without padding. */
 function base32Encode(input: string): string {
-  let result = "", bits = 0, value = 0
+  let result = "",
+    bits = 0,
+    value = 0
   for (const byte of Buffer.from(input, "utf8")) {
     value = (value << 8) | byte
     bits += 8
@@ -88,11 +90,20 @@ function assertNonEmptyKey(key: string): void {
     throw new TypeError("key must be a non-empty string")
 }
 
-function assertNonNegativeInt(value: number, name: string, safe?: boolean): void {
+function assertNonNegativeInt(
+  value: number,
+  name: string,
+  safe?: boolean,
+): void {
   if (typeof value !== "number" || Number.isNaN(value))
     throw new TypeError(`${name} must be a number`)
-  if (value < 0 || !(safe ? Number.isSafeInteger(value) : Number.isInteger(value)))
-    throw new RangeError(`${name} must be a non-negative${safe ? " safe" : ""} integer`)
+  if (
+    value < 0 ||
+    !(safe ? Number.isSafeInteger(value) : Number.isInteger(value))
+  )
+    throw new RangeError(
+      `${name} must be a non-negative${safe ? " safe" : ""} integer`,
+    )
 }
 
 function createOtpAuthUri(type: OtpType, key: string, label: string): string {
@@ -119,13 +130,21 @@ async function createQrCode(uri: string): Promise<string> {
  * @param counter - 8-byte big-endian counter value.
  * @param digits - Number of digits in the output (default 6).
  */
-function computeHotp(key: string, counter: number, digits = defaultDigits): string {
+function computeHotp(
+  key: string,
+  counter: number,
+  digits = defaultDigits,
+): string {
   assertNonNegativeInt(counter, "counter", true)
   const buf = Buffer.alloc(8)
   buf.writeBigUInt64BE(BigInt(counter))
   const digest = createHmac("sha1", key).update(buf).digest()
   const offset = digest[digest.length - 1] & 0x0f
-  const code = ((digest[offset] & 0x7f) << 24) | ((digest[offset + 1] & 0xff) << 16) | ((digest[offset + 2] & 0xff) << 8) | (digest[offset + 3] & 0xff)
+  const code =
+    ((digest[offset] & 0x7f) << 24) |
+    ((digest[offset + 1] & 0xff) << 16) |
+    ((digest[offset + 2] & 0xff) << 8) |
+    (digest[offset + 3] & 0xff)
   return (code % 10 ** digits).toString().padStart(digits, "0")
 }
 
@@ -143,7 +162,8 @@ const totp: TotpAPI = {
     assertNonNegativeInt(window, "window")
     const counter = Math.floor(Date.now() / 1000 / totpPeriodSeconds)
     for (let i = -window; i <= window; i++)
-      if (counter + i >= 0 && computeHotp(key, counter + i) === token) return true
+      if (counter + i >= 0 && computeHotp(key, counter + i) === token)
+        return true
     return false
   },
 }

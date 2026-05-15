@@ -32,11 +32,12 @@ describe("HOTP — RFC 4226 Appendix D vectors", () => {
 describe("TOTP — RFC 6238 derived via Date.now mock", () => {
   const RFC_KEY = "12345678901234567890"
   let originalDateNow: typeof Date.now
-  const invalidWindows: Array<[number, typeof TypeError | typeof RangeError]> = [
-    [Number.NaN, TypeError],
-    [-1, RangeError],
-    [1.5, RangeError],
-  ]
+  const invalidWindows: Array<[number, typeof TypeError | typeof RangeError]> =
+    [
+      [Number.NaN, TypeError],
+      [-1, RangeError],
+      [1.5, RangeError],
+    ]
 
   before(() => {
     originalDateNow = Date.now
@@ -122,12 +123,13 @@ describe("URI construction", () => {
 })
 
 describe("HOTP counter validation", () => {
-  const invalidCounters: Array<[number, typeof TypeError | typeof RangeError]> = [
-    [Number.NaN, TypeError],
-    [-1, RangeError],
-    [1.5, RangeError],
-    [Number.MAX_SAFE_INTEGER + 1, RangeError],
-  ]
+  const invalidCounters: Array<[number, typeof TypeError | typeof RangeError]> =
+    [
+      [Number.NaN, TypeError],
+      [-1, RangeError],
+      [1.5, RangeError],
+      [Number.MAX_SAFE_INTEGER + 1, RangeError],
+    ]
 
   for (const [counter, error] of invalidCounters) {
     it(`throws ${error.name} for invalid counter=${counter}`, () => {
