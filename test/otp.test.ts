@@ -37,6 +37,7 @@ describe("TOTP — RFC 6238 derived via Date.now mock", () => {
       [Number.NaN, TypeError],
       [-1, RangeError],
       [1.5, RangeError],
+      [11, RangeError],
     ]
 
   before(() => {
@@ -68,6 +69,11 @@ describe("TOTP — RFC 6238 derived via Date.now mock", () => {
   it("wrong token returns false", () => {
     Date.now = () => 59 * 1000
     assert.equal(TOTP.verify(RFC_KEY, "000000"), false)
+  })
+
+  it("allows the maximum window", () => {
+    Date.now = () => 59 * 1000
+    assert.equal(TOTP.verify(RFC_KEY, "287082", 10), true)
   })
 
   for (const [window, error] of invalidWindows) {
@@ -108,7 +114,11 @@ describe("URI construction", () => {
   for (const { api, scheme } of cases) {
     it(`${scheme.toUpperCase()} URI has correct scheme and parameters`, () => {
       const uri = api.create("secret", "My App")
-      assert.equal(uri, `otpauth://${scheme}/My%20App?secret=ONSWG4TFOQ`)
+      const expected =
+        scheme === "hotp"
+          ? `otpauth://hotp/My%20App?secret=ONSWG4TFOQ&counter=0`
+          : `otpauth://totp/My%20App?secret=ONSWG4TFOQ`
+      assert.equal(uri, expected)
       assert.ok(uri.startsWith(`otpauth://${scheme}/`))
       assert.ok(uri.includes("secret=ONSWG4TFOQ")) // base32("secret")
       assert.ok(uri.includes("My%20App")) // URL-encoded label
@@ -119,6 +129,28 @@ describe("URI construction", () => {
     for (const { api } of cases) {
       assert.throws(() => api.create("", "label"), TypeError)
     }
+  })
+})
+
+describe("Token validation", () => {
+  const invalidTokens = [
+    "",
+    "12345",
+    "1234567",
+    "12345a",
+    " 123456",
+    123456 as unknown as string,
+  ]
+
+  for (const token of invalidTokens) {
+    it(`returns false for invalid token=${String(token)}`, () => {
+      assert.equal(HOTP.verify("secret", token, 0), false)
+    })
+  }
+
+  it("throws TypeError for empty keys during verification", () => {
+    assert.throws(() => HOTP.verify("", "123456", 0), TypeError)
+    assert.throws(() => TOTP.verify("", "123456"), TypeError)
   })
 })
 
@@ -144,5 +176,17 @@ describe("qrcode — optional peer dependency", () => {
     const uri = TOTP.create("secret", "test")
     const dataUrl = await TOTP.qrcode(uri)
     assert.ok(dataUrl.startsWith("data:image/png;base64,"))
+  })
+
+  it("rejects invalid QR code URIs", async () => {
+    const tooLongUri = `otpauth://totp/${"a".repeat(2048)}?secret=ABC`
+
+    await assert.rejects(() => TOTP.qrcode("https://example.com"), TypeError)
+    await assert.rejects(() => TOTP.qrcode("otpauth://totp/test"), TypeError)
+    await assert.rejects(
+      () => TOTP.qrcode("otpauth://push/test?secret=ABC"),
+      TypeError,
+    )
+    await assert.rejects(() => TOTP.qrcode(tooLongUri), RangeError)
   })
 })

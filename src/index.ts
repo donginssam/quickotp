@@ -1,8 +1,11 @@
-import { createHmac } from "node:crypto"
+import { createHmac, timingSafeEqual } from "node:crypto"
 
 const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 const defaultDigits = 6
 const totpPeriodSeconds = 30
+const maxTotpWindow = 10
+const maxQrCodeUriLength = 2048
+const tokenPattern = /^\d{6}$/
 
 type OtpType = "totp" | "hotp"
 
@@ -24,6 +27,8 @@ type OtpAPI = {
    * Requires the optional `qrcode` package (`pnpm add qrcode`).
    * @param uri - An `otpauth://` URI returned by `create`.
    * @returns A `data:image/png;base64,...` string ready for use in an `<img>` tag.
+   * @throws {TypeError} If `uri` is not a valid `otpauth://` URI.
+   * @throws {RangeError} If `uri` is too long.
    * @throws {Error} If the `qrcode` package is not installed.
    * @example
    * const dataUrl = await TOTP.qrcode(uri)
@@ -43,11 +48,11 @@ type TotpAPI = OtpAPI & {
    * @param token - The 6-digit token entered by the user.
    * @param window - Number of 30-second periods to accept on either side of the current period (default `1`).
    * @returns `true` if the token matches any counter in the allowed window.
-   * @throws {TypeError} If `window` is not a number.
-   * @throws {RangeError} If `window` is not a non-negative integer.
+   * @throws {TypeError} If `key` is empty or `window` is not a number.
+   * @throws {RangeError} If `window` is not an integer from `0` through `10`.
    * @example
-   * const ok = TOTP.verify("mysecret", "123456")
-   * const lenient = TOTP.verify("mysecret", "123456", 2) // ±2 periods
+   * const ok = TOTP.verify(sharedSecret, "123456")
+   * const lenient = TOTP.verify(sharedSecret, "123456", 2) // ±2 periods
    */
   verify(key: string, token: string, window?: number): boolean
 }
@@ -63,10 +68,10 @@ type HotpAPI = OtpAPI & {
    * @param token - The 6-digit token to verify.
    * @param counter - The counter value that was used to generate the token.
    * @returns `true` if the token matches the given counter.
-   * @throws {TypeError} If `counter` is not a number.
+   * @throws {TypeError} If `key` is empty or `counter` is not a number.
    * @throws {RangeError} If `counter` is not a non-negative safe integer.
    * @example
-   * const ok = HOTP.verify("mysecret", "123456", 42)
+   * const ok = HOTP.verify(sharedSecret, "123456", 42)
    */
   verify(key: string, token: string, counter: number): boolean
 }
@@ -106,13 +111,45 @@ function assertNonNegativeInt(
     )
 }
 
+function assertTotpWindow(window: number): void {
+  assertNonNegativeInt(window, "window")
+  if (window > maxTotpWindow)
+    throw new RangeError(`window must be less than or equal to ${maxTotpWindow}`)
+}
+
+function assertOtpAuthUri(uri: string): void {
+  if (typeof uri !== "string")
+    throw new TypeError("uri must be an otpauth URI string")
+  if (uri.length > maxQrCodeUriLength)
+    throw new RangeError(
+      `uri must be ${maxQrCodeUriLength} characters or fewer`,
+    )
+
+  let parsedUri: URL
+  try {
+    parsedUri = new URL(uri)
+  } catch {
+    throw new TypeError("uri must be a valid otpauth URI")
+  }
+
+  if (parsedUri.protocol !== "otpauth:")
+    throw new TypeError("uri must use the otpauth protocol")
+  if (parsedUri.hostname !== "totp" && parsedUri.hostname !== "hotp")
+    throw new TypeError("uri must be an otpauth totp or hotp URI")
+  if (!parsedUri.searchParams.get("secret"))
+    throw new TypeError("uri must include a secret parameter")
+}
+
 function createOtpAuthUri(type: OtpType, key: string, label: string): string {
   assertNonEmptyKey(key)
-  const searchParams = new URLSearchParams({ secret: base32Encode(key) })
+  const params: Record<string, string> = { secret: base32Encode(key) }
+  if (type === "hotp") params.counter = "0"
+  const searchParams = new URLSearchParams(params)
   return `otpauth://${type}/${encodeURIComponent(label)}?${searchParams}`
 }
 
 async function createQrCode(uri: string): Promise<string> {
+  assertOtpAuthUri(uri)
   let qrCode: typeof import("qrcode")
   try {
     qrCode = (await import("qrcode")) as typeof import("qrcode")
@@ -122,6 +159,16 @@ async function createQrCode(uri: string): Promise<string> {
     )
   }
   return qrCode.toDataURL(uri)
+}
+
+function verifyToken(key: string, token: string, counter: number): boolean {
+  assertNonEmptyKey(key)
+  if (typeof token !== "string") return false
+  if (!tokenPattern.test(token)) return false
+  return timingSafeEqual(
+    Buffer.from(computeHotp(key, counter)),
+    Buffer.from(token),
+  )
 }
 
 /**
@@ -152,18 +199,17 @@ function computeHotp(
  * Time-based One-Time Password helpers (RFC 6238).
  * @example
  * import { TOTP } from "quickotp"
- * const uri = TOTP.create("mysecret", "alice@example.com")
- * const ok = TOTP.verify("mysecret", userInput)
+ * const uri = TOTP.create(sharedSecret, "alice@example.com")
+ * const ok = TOTP.verify(sharedSecret, userInput)
  */
 const totp: TotpAPI = {
   create: (key, label) => createOtpAuthUri("totp", key, label),
   qrcode: createQrCode,
   verify(key: string, token: string, window = 1): boolean {
-    assertNonNegativeInt(window, "window")
+    assertTotpWindow(window)
     const counter = Math.floor(Date.now() / 1000 / totpPeriodSeconds)
     for (let i = -window; i <= window; i++)
-      if (counter + i >= 0 && computeHotp(key, counter + i) === token)
-        return true
+      if (counter + i >= 0 && verifyToken(key, token, counter + i)) return true
     return false
   },
 }
@@ -172,13 +218,13 @@ const totp: TotpAPI = {
  * HMAC-based One-Time Password helpers (RFC 4226).
  * @example
  * import { HOTP } from "quickotp"
- * const uri = HOTP.create("mysecret", "alice@example.com")
- * const ok = HOTP.verify("mysecret", userInput, counter)
+ * const uri = HOTP.create(sharedSecret, "alice@example.com")
+ * const ok = HOTP.verify(sharedSecret, userInput, counter)
  */
 const hotp: HotpAPI = {
   create: (key, label) => createOtpAuthUri("hotp", key, label),
   qrcode: createQrCode,
-  verify: (key, token, counter) => computeHotp(key, counter) === token,
+  verify: verifyToken,
 }
 
 export { totp as TOTP, hotp as HOTP }

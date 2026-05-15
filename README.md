@@ -83,11 +83,13 @@ Returns an `otpauth://totp/` URI with the base32-encoded secret. Throws `TypeErr
 ### `TOTP.verify(key, token, window?): boolean`
 
 Verifies a TOTP token against the current time. `window` controls how many 30-second steps in either direction are accepted (default: `1`).
-Throws `TypeError` or `RangeError` if `window` is not a non-negative integer.
+Throws `TypeError` or `RangeError` if `key` is empty or `window` is not an integer from `0` through `10`.
+Returns `false` for tokens that are not exactly 6 digits.
 
 ### `TOTP.qrcode(uri): Promise<string>`
 
 Returns the URI encoded as a PNG data URL. Requires `qrcode` to be installed.
+Throws if `uri` is not a valid `otpauth://totp/` or `otpauth://hotp/` URI with a `secret` parameter.
 
 ### `HOTP.create(key, label): string`
 
@@ -96,11 +98,13 @@ Returns an `otpauth://hotp/` URI with the base32-encoded secret. Throws `TypeErr
 ### `HOTP.verify(key, token, counter): boolean`
 
 Verifies an HOTP token against the given counter value.
-Throws `TypeError` or `RangeError` if `counter` is not a non-negative safe integer.
+Throws `TypeError` or `RangeError` if `key` is empty or `counter` is not a non-negative safe integer.
+Returns `false` for tokens that are not exactly 6 digits.
 
 ### `HOTP.qrcode(uri): Promise<string>`
 
 Returns the URI encoded as a PNG data URL. Requires `qrcode` to be installed.
+Throws if `uri` is not a valid `otpauth://totp/` or `otpauth://hotp/` URI with a `secret` parameter.
 
 ---
 
