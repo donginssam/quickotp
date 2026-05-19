@@ -95,28 +95,6 @@ function assertNonEmptyKey(key: string): void {
     throw new TypeError("key must be a non-empty string")
 }
 
-function assertNonNegativeInt(
-  value: number,
-  name: string,
-  safe?: boolean,
-): void {
-  if (typeof value !== "number" || Number.isNaN(value))
-    throw new TypeError(`${name} must be a number`)
-  if (
-    value < 0 ||
-    !(safe ? Number.isSafeInteger(value) : Number.isInteger(value))
-  )
-    throw new RangeError(
-      `${name} must be a non-negative${safe ? " safe" : ""} integer`,
-    )
-}
-
-function assertTotpWindow(window: number): void {
-  assertNonNegativeInt(window, "window")
-  if (window > maxTotpWindow)
-    throw new RangeError(`window must be less than or equal to ${maxTotpWindow}`)
-}
-
 function assertOtpAuthUri(uri: string): void {
   if (typeof uri !== "string")
     throw new TypeError("uri must be an otpauth URI string")
@@ -162,7 +140,6 @@ async function createQrCode(uri: string): Promise<string> {
 }
 
 function verifyToken(key: string, token: string, counter: number): boolean {
-  assertNonEmptyKey(key)
   if (typeof token !== "string") return false
   if (!tokenPattern.test(token)) return false
   return timingSafeEqual(
@@ -172,17 +149,12 @@ function verifyToken(key: string, token: string, counter: number): boolean {
 }
 
 /**
- * Computes an HOTP value per RFC 4226 §5.
+ * Computes an HOTP value per RFC 4226 §5 (HMAC-SHA1 + dynamic truncation).
  * @param key - Plain-text secret used as the HMAC-SHA1 key.
  * @param counter - 8-byte big-endian counter value.
- * @param digits - Number of digits in the output (default 6).
+ * @returns Zero-padded decimal string of length {@link digits}.
  */
-function computeHotp(
-  key: string,
-  counter: number,
-  digits = defaultDigits,
-): string {
-  assertNonNegativeInt(counter, "counter", true)
+function computeHotp(key: string, counter: number): string {
   const buf = Buffer.alloc(8)
   buf.writeBigUInt64BE(BigInt(counter))
   const digest = createHmac("sha1", key).update(buf).digest()
@@ -192,7 +164,7 @@ function computeHotp(
     ((digest[offset + 1] & 0xff) << 16) |
     ((digest[offset + 2] & 0xff) << 8) |
     (digest[offset + 3] & 0xff)
-  return (code % 10 ** digits).toString().padStart(digits, "0")
+  return (code % 10 ** defaultDigits).toString().padStart(defaultDigits, "0")
 }
 
 /**
@@ -202,17 +174,23 @@ function computeHotp(
  * const uri = TOTP.create(sharedSecret, "alice@example.com")
  * const ok = TOTP.verify(sharedSecret, userInput)
  */
-const totp: TotpAPI = {
+export const TOTP = {
   create: (key, label) => createOtpAuthUri("totp", key, label),
   qrcode: createQrCode,
   verify(key: string, token: string, window = 1): boolean {
-    assertTotpWindow(window)
+    assertNonEmptyKey(key)
+    if (typeof window !== "number" || Number.isNaN(window))
+      throw new TypeError("window must be a number")
+    if (!Number.isInteger(window) || window < 0 || window > maxTotpWindow)
+      throw new RangeError(
+        `window must be an integer from 0 through ${maxTotpWindow}`,
+      )
     const counter = Math.floor(Date.now() / 1000 / totpPeriodSeconds)
     for (let i = -window; i <= window; i++)
       if (counter + i >= 0 && verifyToken(key, token, counter + i)) return true
     return false
   },
-}
+} satisfies TotpAPI
 
 /**
  * HMAC-based One-Time Password helpers (RFC 4226).
@@ -221,10 +199,15 @@ const totp: TotpAPI = {
  * const uri = HOTP.create(sharedSecret, "alice@example.com")
  * const ok = HOTP.verify(sharedSecret, userInput, counter)
  */
-const hotp: HotpAPI = {
+export const HOTP = {
   create: (key, label) => createOtpAuthUri("hotp", key, label),
   qrcode: createQrCode,
-  verify: verifyToken,
-}
-
-export { totp as TOTP, hotp as HOTP }
+  verify(key: string, token: string, counter: number): boolean {
+    assertNonEmptyKey(key)
+    if (typeof counter !== "number" || Number.isNaN(counter))
+      throw new TypeError("counter must be a number")
+    if (!Number.isSafeInteger(counter) || counter < 0)
+      throw new RangeError("counter must be a non-negative safe integer")
+    return verifyToken(key, token, counter)
+  },
+} satisfies HotpAPI

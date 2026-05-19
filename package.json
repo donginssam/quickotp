@@ -3,7 +3,7 @@
   "version": "2.1.1",
   "description": "A lightweight OTP library for Node.js with zero runtime dependencies.",
   "type": "module",
-  "packageManager": "pnpm@11.0.9",
+  "packageManager": "pnpm@11.1.2",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
