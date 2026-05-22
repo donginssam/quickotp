@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "command(pnpm build)",
+      "command(pnpm format)",
+      "command(pnpm lint)",
+      "command(pnpm test)"
+    ]
+  }
+}
