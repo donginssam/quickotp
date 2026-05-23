@@ -1,13 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-const defaultDigits = 6
+const digits = 6
 const totpPeriodSeconds = 30
 const maxTotpWindow = 10
 const maxQrCodeUriLength = 2048
-const tokenPattern = /^\d{6}$/
-
-type OtpType = "totp" | "hotp"
+const tokenPattern = new RegExp(`^\\d{${digits}}$`)
 
 /**
  * Shared methods for both {@link TotpAPI} and {@link HotpAPI}.
@@ -118,7 +116,11 @@ function assertOtpAuthUri(uri: string): void {
     throw new TypeError("uri must include a secret parameter")
 }
 
-function createOtpAuthUri(type: OtpType, key: string, label: string): string {
+function createOtpAuthUri(
+  type: "totp" | "hotp",
+  key: string,
+  label: string,
+): string {
   assertNonEmptyKey(key)
   const params: Record<string, string> = { secret: base32Encode(key) }
   if (type === "hotp") params.counter = "0"
@@ -130,7 +132,7 @@ async function createQrCode(uri: string): Promise<string> {
   assertOtpAuthUri(uri)
   let qrCode: typeof import("qrcode")
   try {
-    qrCode = (await import("qrcode")) as typeof import("qrcode")
+    qrCode = await import("qrcode")
   } catch {
     throw new Error(
       'qrcode is not installed. Run "pnpm add qrcode" to use this feature.',
@@ -164,7 +166,7 @@ function computeHotp(key: string, counter: number): string {
     ((digest[offset + 1] & 0xff) << 16) |
     ((digest[offset + 2] & 0xff) << 8) |
     (digest[offset + 3] & 0xff)
-  return (code % 10 ** defaultDigits).toString().padStart(defaultDigits, "0")
+  return (code % 10 ** digits).toString().padStart(digits, "0")
 }
 
 /**
