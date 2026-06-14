@@ -1,6 +1,6 @@
 {
   "name": "quickotp",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "A lightweight OTP library for Node.js with zero runtime dependencies.",
   "type": "module",
   "packageManager": "pnpm@11.6.0",
