@@ -19,8 +19,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.4.1)
       '@types/node':
-        specifier: ^25.8.0
-        version: 25.9.3
+        specifier: ^26.0.0
+        version: 26.0.0
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.6
@@ -431,6 +431,9 @@ packages:
 
   '@types/node@25.9.3':
     resolution: {integrity: sha512-603BddQMv3pUcr4U2dhujk83N2tTDVr/34wII2B6bJy6g+8WD6yUb11jszNs0gdi4PesVWl7ABt8nYMVpnLUcg==}
+
+  '@types/node@26.0.0':
+    resolution: {integrity: sha512-vf2YFi1iY9lHGwNJMs01biZFbKJkrZR1T6/MlzjhJLPdntOHLhTrDSnSVcdtvjihi4VQNlrFRIxLsDBlQpAipA==}
 
   '@types/qrcode@1.5.6':
     resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
@@ -1013,6 +1016,9 @@ packages:
   undici-types@7.24.6:
     resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
 
+  undici-types@8.3.0:
+    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
+
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
@@ -1277,6 +1283,10 @@ snapshots:
   '@types/node@25.9.3':
     dependencies:
       undici-types: 7.24.6
+
+  '@types/node@26.0.0':
+    dependencies:
+      undici-types: 8.3.0
 
   '@types/qrcode@1.5.6':
     dependencies:
@@ -1887,6 +1897,8 @@ snapshots:
   ufo@1.6.4: {}
 
   undici-types@7.24.6: {}
+
+  undici-types@8.3.0: {}
 
   uri-js@4.4.1:
     dependencies:
